@@ -26,7 +26,7 @@ Using gossh
    gossh -a samplehost -i /path/to/ssh/key -u sample_user -H samplehost.example.com
 - Removing a host:  
    gossh -r samlehost
-- Updating a host:
+- Updating a host:   
    gossh -m samplehost -i /path/to/ssh/new_key
 - Connecting:       
    gossh samplehost
