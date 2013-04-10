@@ -97,10 +97,8 @@ def read_config():
   ## Test for file.  create and populate if missing
   if os.path.exists(filename) is False:
     log("No connections YAML file found. Creating %s for the first time" % filename)
-    fh = (open(filename,'w'))
-    fh.write(yaml.dump(sample, default_flow_style=False))
-    fh.close()
-    return False
+    write_config(sample)
+    return sample
   else:
     log("Connections Yaml file found.  Loading")
     data        = yaml.load(open(filename,'r'))
@@ -158,6 +156,9 @@ def add_host(conf):
   conn        = read_config()
 
   ## Check that we have the required options
+  if not conf.has_key('name'):
+    die("You must specify a name for the config using '-a'!")
+
   if not conf.has_key('user'):
     die("You must specify a user for the config using '-u'!")
   
@@ -169,7 +170,14 @@ def add_host(conf):
 
 
   ## Add the host hash to our connection config
-  conn["%s" % conf['name']] = { 'user': conf["user"], 'key': conf["key"], 'host': conf["host"] }
+  name                        = conf["name"]
+  if conn.has_key("%s" % name):
+    die("%s already in configuration.  You ca modify (-m) or remove (-r) it")
+  else:
+    conn["%s" % name]           = dict()
+    conn["%s" % name]["user"]   = conf['user']
+    conn["%s" % name]["host"]   = conf['host']
+    conn["%s" % name]["key"]    = conf['key']
 
   ## Write out our config
   write_config(conn)
