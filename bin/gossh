@@ -1,0 +1,305 @@
+#!/usr/bin/env python
+################################################################################
+#
+# Name  : gossh
+# What  : SSH "go" script for connecting to many ssh servers by reusing 1 command
+# How   : Reads a yaml file located at ENV{"GOSSH_CONFIG"} or ${HOME}/.gossh.yaml
+#       : and parses out the hostname, and the ssh key to use from there.
+# Author: AJ sevaine@gmail.com
+#
+################################################################################
+import os
+import sys
+import yaml
+import getopt
+from subprocess import call
+################################################################################
+#
+# Script functions
+#
+################################################################################
+def usage():
+  #
+  # print usage information to stderr
+  #
+  sys.stderr.write("""\
+
+Usage: %s [opts] NAME
+
+Options:
+--------
+  -h      : Print this message
+  -l      : List host ssh profiles in configuration
+
+  -a NAME : Add a host to configuration ( requires -u -i -h )
+  -m NAME : Modify a host in configuration ( requires one of -u -i -h )
+  -r NAME : Remove a host from configuration
+
+  -u USER : The remote SSH username
+  -i FILE : The SSH identity file
+  -H HOST : The hostname
+
+Example - Add a host: 
+  
+  go -a test -u testuser -i /home/.ssh/id_rsa -H test.example.com
+
+Example - Change a host ssh key
+  
+  go -m test -i /path/to/newkey.pem
+
+Example - remove 'test' from config
+  
+  go -r test
+
+  """ % sys.argv[0])
+
+
+def die(mesg):
+  #
+  # fatal err.  Write mesg to stdout and exit 1
+  #
+  sys.stderr.write("%s\n" % mesg.strip())
+  sys.exit(1)
+
+
+def log(mesg):
+  #
+  # Write a message to stdout
+  # 
+  sys.stdout.write("%s\n" % mesg.strip())
+
+
+def read_config():
+  #
+  # Check for .gossh/connections.yaml under
+  # user's home.  Create with a sample host
+  # config for localhost if missing.
+  #
+  
+  ## default vars
+  dirname       = "%s/.gossh" % os.environ["HOME"]
+  filename      = "%s/connections.yaml" % dirname
+  sample        = {
+    'localhost':{
+      'host':"127.0.0.1",
+      "user":"Not Applicable",
+      "key":"Not Applicable", 
+      "desc":"sample host",
+      "ignore":True
+    }
+  }
+  
+  ## Test for dir.  Create if missing
+  if os.path.exists(dirname) is False:
+    log("Configuration dir not found. Creating")
+    os.mkdir(dirname)
+
+  ## Test for file.  create and populate if missing
+  if os.path.exists(filename) is False:
+    log("No connections YAML file found. Creating %s for the first time" % filename)
+    fh = (open(filename,'w'))
+    fh.write(yaml.dump(sample, default_flow_style=False))
+    fh.close()
+    return False
+  else:
+    log("Connections Yaml file found.  Loading")
+    data        = yaml.load(open(filename,'r'))
+    return data
+
+
+def write_config(cfgdata):
+  #
+  # write out our configuration again in yaml format
+  #
+  cfgfile       = os.path.join(os.environ["HOME"],'.gossh','connections.yaml')
+  try:  
+    fh          = open(cfgfile, 'w')
+    fh.write(yaml.dump(cfgdata, default_flow_style=False))
+    fh.close()
+  except IOError, e:
+    die("Failed to write configiration to %s: %s!" % (cfgfile, str(e)))
+
+
+def list_hosts():
+  #
+  # list_hosts():  read the list of connection names
+  # from the conf file, and print connection_name, and dest
+  # host to stdout, then exit
+  #
+
+  ## check for an existing config.  If it's missing, create one
+  ## and return a no hosts message
+  log("Loading the list of connections")
+  conn          = read_config()
+  if conn is False:
+    cfgfile     = os.path.join(os.environ["HOME"],".gossh","connectoins.yaml")
+    log("No connections configuration file found.  Created new config at: %s" % cfgfile)
+  else:
+    sys.stdout.write("\n")
+    for name in conn.keys():
+      if conn["%s" % name].has_key("ignore"):
+        next
+      else:
+        host = conn["%s" % name]["host"]
+        desc = "No Description"
+        if conn["%s" % name].has_key("desc"):
+          desc = conn["%s" % name]['desc']
+        sys.stdout.write("%s\t(%s) (%s)\n" % ( name, host, desc ))
+
+  sys.exit(0)
+
+
+def add_host(conf):
+  #
+  # check that we have the required data to add a host
+  # if yes, load config from connections config, update 
+  # data, and write file out again
+  #
+  conn        = read_config()
+
+  ## Check that we have the required options
+  if not conf.has_key('user'):
+    die("You must specify a user for the config using '-u'!")
+  
+  if not conf.has_key('key'):
+    die("You must specify an SSH identity file for the config using '-i'!")
+  
+  if not conf.has_key('host'):
+    die("You must specify an target hostname or IP address for the config using '-H'!")
+
+
+  ## Add the host hash to our connection config
+  conn["%s" % conf['name']] = { 'user': conf["user"], 'key': conf["key"], 'host': conf["host"] }
+
+  ## Write out our config
+  write_config(conn)
+  sys.exit(0)    
+
+
+def update_host(cfg):
+  #
+  # lod configuraton, check for host 
+  # if there, update any of user, key or host 
+  # with that from cfg
+  #
+  log("Updating configuration for connection [%s]" % cfg['name']) 
+  conn        = read_config()
+  name        = cfg['name']
+  if conn.has_key(name):
+    if cfg.has_key("user"):
+      log("Updated user to %s for %s" % (cfg["user"], cfg["name"]))
+      conn["%s" % name]["user"] = cfg["user"]
+    if cfg.has_key("key"):
+      conn["%s" % name]["key"] = cfg["key"]
+      log("Updated key to %s for %s" % (cfg["key"], cfg["name"]))
+    if cfg.has_key("host"):
+      conn["%s" % name]["host"] = cfg["host"]
+      log("Updated host to %s for %s" % (cfg["host"], cfg["name"]))
+  else:
+    die("Could not find %s in config. Did you mean to use -a?")
+
+  write_config(conn)
+  sys.exit(0)
+
+
+def del_host(name):
+  # 
+  # remove host named 'name' from configuration and save it,
+  #
+  conn        = read_config()
+  log("Removing connection %s from config:" % name)
+  if conn.has_key(name):
+    del conn[name]
+    log("  %s removed" % name)
+
+  write_config(conn)
+  sys.exit(0)
+
+
+def make_connection(name):
+  #
+  # Open an ssh connectin to connection named NAME
+  #
+  log("Checking for %s in config" % name)
+  conn        = read_config()
+  if conn.has_key("%s" % name):
+    log("connection %s found. Connecting to %s" %(name,name))
+    hostname  = conn["%s" % name]['host']
+    key       = conn["%s" % name]['key']
+    user      = conn["%s" % name]['user']
+    cmd       = ["ssh", "-C", "-i", "%s" % key, "-l", "%s" % user, "%s" % hostname]
+    call(cmd)
+    sys.exit(0)
+  else:
+    die("%s not in configuration.  Yuo need to add it" % name)
+
+
+def main():
+  #
+  # Main Function.  Parse commandline options.  Fail if incorrect/
+  # Once options are parsed, the following
+  #
+  runtime_cfg     = dict()
+
+  ## Parse command line options and arguments
+  try:
+    opts, args = getopt.getopt(sys.argv[1:], "hla:m:r:i:u:H:", [])
+  except getopt.GetoptError as err:
+      die("Failed to parse command line options: [%s]" % str(err))
+
+  for o, a in opts:
+    if o == '-h':
+      usage()
+      sys.exit(0)
+    elif o == '-l':
+      ## Return a list of the connections we have configured
+      list_hosts()
+    elif o == '-a':
+      ## -a requires -u, -i, -H.  Handle that in add_host()
+      runtime_cfg['action'] = 'add'
+      runtime_cfg['name'] = a
+    elif o == '-m':
+      ## -m requires one of -u, -i, -H.  Handle that in add_host()
+      runtime_cfg['action'] = 'change'
+      runtime_cfg['name'] = a
+    elif o == '-r':
+      ## -d requires only the alias name to remove a host profile
+      runtime_cfg['action'] = 'del'
+      runtime_cfg['name'] = a
+    elif o == "-u":
+      runtime_cfg['user'] = a
+    elif o == "-i":
+      runtime_cfg["key"] = a
+    elif o == "-H":
+      runtime_cfg["host"] = a
+    elif o == "-d":
+      runtime_cfg["desc"] = a
+    else:
+      assert False, "Unhandled Option"
+      usage()
+      exit(2)
+
+  if runtime_cfg.has_key('action'):
+    if runtime_cfg['action'] == 'add':
+      add_host(runtime_cfg)
+    elif runtime_cfg['action'] == 'del':
+      del_host(runtime_cfg["name"])
+    elif runtime_cfg['action'] == 'change':
+      update_host(runtime_cfg)
+
+
+  if len(args) != 1:
+    log("You must provide a connection name!")
+    usage()
+    exit(2)
+  else:
+    make_connection(args[0])
+
+  
+################################################################################
+#
+# Script Execute
+#
+################################################################################
+if __name__ =="__main__":
+  main()
