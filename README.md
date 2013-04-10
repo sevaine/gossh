@@ -22,10 +22,14 @@ Installation is simple, once PyYAML is installed, simply copy bin/gossh to ~/bin
 Using gossh
 -----------
 
-- Adding a host:    gossh -a samplehost -i /path/to/ssh/key -u sample_user -H samplehost.example.com
-- Removing a host:  gossh -r samlehost
-- Updating a host:  gossh -m samplehost -i /path/to/ssh/new_key
-- Connecting:       gossh samplehost
+- Adding a host:    
+   gossh -a samplehost -i /path/to/ssh/key -u sample_user -H samplehost.example.com
+- Removing a host:  
+   gossh -r samlehost
+- Updating a host:
+   gossh -m samplehost -i /path/to/ssh/new_key
+- Connecting:       
+   gossh samplehost
 
 The gossh connections config file
 ---------------------------------
