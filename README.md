@@ -25,7 +25,7 @@ Using gossh
 - Adding a host:    
    gossh -a samplehost -i /path/to/ssh/key -u sample_user -H samplehost.example.com
 - Removing a host:  
-   gossh -r samlehost
+   gossh -r samplehost
 - Updating a host:   
    gossh -m samplehost -i /path/to/ssh/new_key
 - Connecting:       
