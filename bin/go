@@ -220,8 +220,8 @@ def update_host(cfg):
   else:
     die("Could not find %s in config. Did you mean to use -a?")
 
-  write_config(conn)
-  sys.exit(0)
+    write_config(conn)
+    sys.exit(0)
 
 
 def del_host(name):
@@ -236,6 +236,37 @@ def del_host(name):
 
   write_config(conn)
   sys.exit(0)
+
+
+def handle_action(args):
+  #
+  # Determine the appropriate action to take 
+  # based on the non-getopt args provided to the script
+  #
+  # These are command extension args.  The following are supported
+  #
+  # pull remote_file [destpath] : use scp to pull a file from a connection.
+  #                             : optionally define a destdir. Otherwise pull to
+  #                             : CWD
+  #
+  # push <file> /path/to/dest   : use scp to push a file to a connection 
+  #
+  # list [path]                 : retrieve a listing of path.  If no path specified, 
+  #                             : just return the output of 'ls' via ssh
+  #
+  log("Processing command-line arguments")
+  if len(args) == 1:
+    make_connection(args[0])
+  elif len(args) > 1:
+    action    = args[1]
+    if action == "push":
+      not_yet_implemented(action)
+    elif action == "pull":
+      not_yet_implemented(action)
+    elif action == "list":
+      not_yet_implemented(action)
+    else:
+      die("An unexpected command was issued %s" % action)
 
 
 def make_connection(name):
@@ -310,12 +341,12 @@ def main():
       update_host(runtime_cfg)
 
 
-  if len(args) != 1:
+  if len(args) < 1:
     log("You must provide a connection name!")
     usage()
     exit(2)
   else:
-    make_connection(args[0])
+    handle_action(args[0])
 
   
 ################################################################################
