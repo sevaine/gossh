@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Go-SSH by sevaine</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Go-SSH</h1>
+        <p>SSH connection management at the command-line made easy.</p>
+
+        <p class="view"><a href="https://github.com/sevaine/gossh">View the Project on GitHub <small>sevaine/gossh</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/sevaine/gossh/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/sevaine/gossh/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/sevaine/gossh">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>Welcome to the go-ssh page</h3>
+
+<p>If you work in UNIX environments as a Developer, a Systems Administrator, or a Systems Engineer you've 
+probably already encountered the frustration of trying to keep track of all of the hosts, credentials, and users that you're required to connect to in performing your day-to-day tasks.   This is a particularly large pain if you happen to be working freelance, or as a consultant in a role that requires you regularly connect to large numbers of hosts, often for different customers, and have to dig around in your documentation to confirm hostnames, username, SSH private key files, etc.</p>
+
+<p>Go-SSH is intended to address that kind of frustration by providing a command-line utility that allows users to manage SSH connections to a large number of disparate hosts, requiring differing users and keys 
+in a simple, efficient, and hassle-free manner.</p>
+
+<h3>What Go-SSH is:</h3>
+
+<p>Go-SSH is a simple and, at present very hacked together, Python wrapper around the standard OS ssh, and SCP commands on most unix, or unix-like operating systems.   </p>
+
+<ul>
+<li>It does launch SSH connections based on a connection name.  Each connection definition includes:
+
+<ul>
+<li>The target hostname or IP address</li>
+<li>The remote username to connect as</li>
+<li>The location of the SSH private key file to authenticate with.</li>
+</ul>
+</li>
+<li>It does provide functionality to add, modify, and delete connection profiles as part of the single "go" command.  No need to edit configuration files by hand.</li>
+<li>It is written to ensure that there are no extra library requirements or packages to install.  As long as your environment has a Python install and ssh and scp installed - it will work</li>
+</ul><h3>What Go-SSH is not:</h3>
+
+<ul>
+<li>Go-SSH is not intended to be a replacement for your OS installed ssh and scp binaries;  There are plenty of SSH clients out there.  Creating another one wouldn't have solved the problem we were aiming at - to have a simple, intuitive and above all easy utility to manage all our SSH connections in one spot.</li>
+<li>It is also not a gui wrapper to SSH with connection management built in.  There are plenty of solutions out there that do this for Windows, Mac, and UNIX environments</li>
+</ul><h3>Where we're at with Go-SSH</h3>
+
+<p>To be frank - we've only just started.  There will be a proportion of the features listed ( below ) that at the time of writing are either planned or only partly implemented.</p>
+
+<h3>Current features</h3>
+
+<ul>
+<li>command-line management of your connections using the 'go' utility ( add, modify and remove )</li>
+<li>Simple listing of all current connections ( "go -l" )</li>
+<li>Reliable start and exit of SSH sessions to your configured connections ( "go CONNECTION_NAME" )</li>
+</ul><h3>Planned features</h3>
+
+<ul>
+<li>Simple file push feature.      Push a file over SCP. ( "go NAME SRC REMOTE_DIR" )</li>
+<li>Simple file pull feature.      Pull a file over SCP. ( "go NAME REMOTE_SRC DEST_DIR" )</li>
+<li>Simple dir list feature.       Retrieve "ls -l" output for DIR ( "go NAME list DIR" )</li>
+<li>Simple ps output feature.      Retrieve "ps -ef" output from NAME ( "go NAME ps" )</li>
+<li>Simple netstat output feature. Retrieve "netstat -an" output from NAME ( "go NAME netstat" )</li>
+</ul><p>As you can see - most of these features are geared towards users who are managing, or supporting hosts over SSH.   We're always interested in suggestions to improve 'go' - so please let us know through the github issues page if you have something you'd like included.  We can't promise we'll include every request - but they'll all get looked at :)</p>
+
+<h3>Authors and Contributors</h3>
+
+<p>Go-SSH was written by <a href="https://github.com/sevaine" class="user-mention">@sevaine</a> in a fit of pique at how unmanagable the list of hosts he needs to access or administer had become.  Credit for the idea goes to <a href="https://github.com/orsonkent" class="user-mention">@orsonkent</a> who, because no good deed goes unpunished is now a contributor and maintainer of the project.</p>
+
+<h3>Support or Contact</h3>
+
+<p>Please use github issues at <a href="https://github.com/sevaine/gossh/issues">https://github.com/sevaine/gossh/issues</a> to log issues with Go-SSH.  </p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/sevaine">sevaine</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
